@@ -27,6 +27,7 @@ _rt_require_conf_dir LTP_DIR
 		link truncate quota quotacheck quotaon vgremove chgrp du fgrep \
 		pgrep pkill tar rev kill fdformat ldd free losetup chown sed \
 		cat lsmod ip ping tc \
+		mkfs.cramfs mkfs.btrfs mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.vfat mkfs.xfs \
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
 	--include "$RAPIDO_DIR/autorun/ltp.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
