@@ -31,6 +31,7 @@ _rt_require_conf_dir LTP_DIR
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
 	--include "$RAPIDO_DIR/autorun/ltp.sh" "/.profile" \
 	--include "$RAPIDO_DIR/rapido.conf" "/rapido.conf" \
+	--include $KERNEL_SRC/.config /.config \
 	--include "$RAPIDO_DIR/vm_autorun.env" "/vm_autorun.env" \
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--add-drivers "loop" \
