@@ -16,6 +16,7 @@ RAPIDO_DIR="`dirname $0`"
 . "${RAPIDO_DIR}/runtime.vars"
 
 _rt_require_qemu_kvm_bin
+_rt_require_arch_vars
 
 function _vm_is_running
 {
@@ -31,7 +32,7 @@ function _vm_start
 {
 	local vm_num=$1
 	local vm_pid_file="${RAPIDO_DIR}/initrds/rapido_vm${vm_num}.pid"
-	local kernel_img="${KERNEL_SRC}/arch/x86/boot/bzImage"
+	local kernel_img="${KERNEL_SRC}/arch/${ARCH_DIR}/boot/bzImage"
 
 	[ -f "$DRACUT_OUT" ] \
 	   || _fail "no initramfs image at ${DRACUT_OUT}. Run \"cut_X\" script?"
@@ -92,7 +93,7 @@ function _vm_start
 		-initrd "$DRACUT_OUT" \
 		-append "rapido.vm_num=${vm_num} ip=${kern_ip_addr} \
 			 rd.systemd.unit=emergency \
-		         rd.shell=1 console=ttyS0 rd.lvm=0 rd.luks=0" \
+		         rd.shell=1 $KERNEL_PARAM_CONSOLE rd.lvm=0 rd.luks=0" \
 		-pidfile "$vm_pid_file" \
 		$virtfs_share \
 		$qemu_more_args
