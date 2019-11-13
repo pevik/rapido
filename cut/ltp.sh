@@ -26,6 +26,9 @@ _rt_require_conf_dir LTP_DIR
 		lsattr cmp stat hostname getconf md5sum od wc tr xargs sysctl \
 		link truncate quota quotacheck quotaon vgremove chgrp du fgrep \
 		pgrep pkill tar rev kill fdformat ldd free losetup chown sed \
+		gdb ltrace strace \
+		mkfs.bfs     mkfs.btrfs   mkfs.cramfs  mkfs.ext2    mkfs.ext3    mkfs.ext4    mkfs.fat     mkfs.jfs     mkfs.minix   mkfs.msdos   mkfs.ntfs    mkfs.vfat    mkfs.xfs \
+		fdisk parted cfdisk \
 		cat lsmod ip ping tc \
 		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
 	--include "$RAPIDO_DIR/autorun/ltp.sh" "/.profile" \
