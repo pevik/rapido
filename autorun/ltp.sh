@@ -36,3 +36,6 @@ fi
 # LTP net tests need loopback networking
 ip link set dev lo up
 ip link set dev sit0 up
+
+# iputils
+sysctl -w net.ipv4.ping_group_range='0 2147483647' # ICMP (SOCK_DGRAM)
