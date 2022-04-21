@@ -35,3 +35,4 @@ fi
 
 # LTP net tests need loopback networking
 ip link set dev lo up
+ip link set dev sit0 up
