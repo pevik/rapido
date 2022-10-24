@@ -1,0 +1,114 @@
+#!/bin/bash
+# SPDX-License-Identifier: (LGPL-2.1 OR LGPL-3.0)
+# Copyright (C) SUSE LLC 2019-2022, all rights reserved.
+
+FS=btrfs # FIXME: debug
+FS=ext4
+
+_vm_ar_env_check || exit 1
+
+modprobe zram num_devices="1" || _fatal "failed to load zram module"
+modprobe nfsd || _fatal "failed to load nfsd module"
+_vm_ar_dyn_debug_enable
+
+_vm_ar_hosts_create
+
+[[ -n $NFS_SHARE ]] || _fatal "NFS_SHARE must be set in rapido.conf"
+
+# use a non-configurable UID/GID for now
+nfs_xid="579121"
+nfs_user="nfsuser"
+cat >> /etc/passwd <<EOF
+rpc:x:464:65534:user for rpcbind:/var/lib/empty:/sbin/nologin
+statd:x:463:65533:NFS statd daemon:/var/lib/nfs:/sbin/nologin
+${nfs_user}:x:${nfs_xid}:${nfs_xid}:NFS user:/:/sbin/nologin
+EOF
+cat >> /etc/group <<EOF
+nobody:x:65534:
+nogroup:x:65533:nobody
+${nfs_user}:x:${nfs_xid}:
+EOF
+
+# may be used as an fstests target, so use FSTESTS_ZRAM_SIZE
+echo "${FSTESTS_ZRAM_SIZE:-1G}" > /sys/block/zram0/disksize \
+	|| _fatal "failed to set zram disksize"
+mkfs.$FS /dev/zram0 || _fatal "mkfs failed"
+
+nfs_share="$(realpath -m "$NFS_SHARE")"
+echo "nfs_share: '$nfs_share'"
+mkdir -p "$nfs_share" "/var/lib/nfs"
+mount -t $FS /dev/zram0 "$nfs_share" || exit 0
+chmod 777 "$nfs_share" || _fatal
+
+cat >> /etc/services <<EOF
+nfs	2049/tcp
+nfs	2049/udp
+sunrpc	111/tcp	rpcbind
+sunrpc	111/udp	rpcbind
+EOF
+
+cat >  /etc/netconfig <<EOF
+udp        tpi_clts      v     inet     udp     -       -
+tcp        tpi_cots_ord  v     inet     tcp     -       -
+udp6       tpi_clts      v     inet6    udp     -       -
+tcp6       tpi_cots_ord  v     inet6    tcp     -       -
+rawip      tpi_raw       -     inet      -      -       -
+local      tpi_cots_ord  -     loopback  -      -       -
+unix       tpi_cots_ord  -     loopback  -      -       -
+EOF
+
+cat > /etc/exports <<EOF
+$nfs_share  *(rw,subtree_check,all_squash,anonuid=${nfs_xid},anongid=${nfs_xid})
+EOF
+
+cat > /etc/nsswitch.conf <<EOF
+rpc:            files usrfiles
+EOF
+
+# rpcbind uses /dev/log for logging
+#setsid --fork nc -lUk /dev/log > /var/log/stuff.log
+
+set -x
+
+rpcbind || _fatal "rpcbind failed to start"
+rpc.nfsd 2 || _fatal "rpc.nfsd failed to start"
+
+mkdir -p /var/lib/nfs
+rpc.mountd || _fatal "rpc.mountd failed to start"
+
+mkdir -p /var/lib/nfs/sm
+rpc.statd --no-notify || _fatal "rpc.statd failed to start"
+
+touch /var/lib/nfs/etab
+exportfs -a || _fatal "exportfs failed"
+
+cd "$nfs_share"
+
+set +x
+
+pub_ips=()
+_vm_ar_ip_addrs_nomask pub_ips
+for i in "${pub_ips[@]}"; do
+	echo "NFS export ready at: ${i}:${nfs_share}"
+done
+
+# ltp requires a few preexisting users/groups
+xid="2000"
+for ug in nobody bin daemon; do
+	echo "${ug}:x:${xid}:${xid}:${ug} user:/:/sbin/nologin" >> /etc/passwd
+	echo "${ug}:x:${xid}:" >> /etc/group
+	((xid++))
+done
+
+export CREATE_ENTRIES=0
+export LTPROOT="$LTP_DIR"
+export PATH="$LTP_DIR:$LTP_DIR/bin:$LTP_DIR/testcases/bin:$PATH"
+
+cd $LTP_DIR/testcases/bin/ || _fatal
+if [ -n "$LTP_AUTORUN_CMD" ]; then
+	echo "Running LTP Command: $LTP_AUTORUN_CMD"
+	eval "$LTP_AUTORUN_CMD"
+fi
+
+# LTP net tests need loopback networking
+ip link set dev lo up
