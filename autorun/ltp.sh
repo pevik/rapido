@@ -35,3 +35,5 @@ fi
 
 # LTP net tests need loopback networking
 ip link set dev lo up
+
+cd ${LTP_DIR}/testcases/bin/
