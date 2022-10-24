@@ -28,11 +28,10 @@ fi
 "$DRACUT" \
 	--install " \
 		attr awk basename bc blockdev cat chattr chgrp chmod chown cmp cut \
-		date dd df diff dirname dmsetup du egrep expr false fdformat fdisk \
+		date dd df diff dirname dmsetup du egrep exportfs expr false fdformat fdisk \
 		fgrep find free gdb getconf getfattr grep head hexdump hostname id ip \
-		kill killall ldd link losetup lsattr lsmod ltrace md5sum mkfs mkfs.bfs \
-		mkfs.btrfs mkfs.cramfs mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.fat mkfs.jfs \
-		mkfs.minix mkfs.msdos mkfs.ntfs mkfs.vfat mkfs.xfs mktemp od parted \
+		kill killall ldd link losetup lsattr lsmod ltrace md5sum $(ls /sbin/mkfs*) \
+		mktemp $(ls /sbin/mount*) od parted \
 		perl pgrep ping ping6 pkill ps quota quotacheck quotaon resize rev \
 		rmdir sed seq setfattr sort stat strace sync sysctl tac tail tar tc \
 		tee touch tr true truncate uniq unlink vgremove wc which xargs xxd yes \
