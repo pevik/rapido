@@ -36,8 +36,7 @@ fses=(btrfs exfat ext2 ext3 ext4 fuse ntfs vfat xfs)
 		${fses[*]/#/mkfs.} mktemp ${fses[*]/#/mount.} od parted perl pgrep ping
 		ping6 pkill ps quota quotacheck quotaon resize rev rmdir sed seq
 		setfacl setfattr sort stat strace sync sysctl tac tail tar tc tee touch
-		tr true truncate uniq unlink vgremove wc which xargs xxd yes
-		${LTP_DIR}/bin/* ${LTP_DIR}/testcases/bin/*" \
+		tr true truncate uniq unlink vgremove wc which xargs xxd yes" \
 	--include "$LTP_DIR" "$LTP_DIR"  \
 	--include "$config" /.config \
 	--add-drivers "loop" \
